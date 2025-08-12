@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button.jsx'
 import { Input } from '@/components/ui/input.jsx'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.jsx'
@@ -12,6 +12,7 @@ function App() {
   const [result, setResult] = useState('')
   const [showSettings, setShowSettings] = useState(false)
   const wheelRef = useRef(null)
+  const timeoutRef = useRef(null)
 
   const colors = [
     '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', 
@@ -55,7 +56,8 @@ function App() {
     }
 
     // 4秒後顯示結果
-    setTimeout(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    timeoutRef.current = setTimeout(() => {
       setIsSpinning(false)
       setResult(selectedItem)
     }, 4000)
@@ -68,6 +70,8 @@ function App() {
     }
     setResult('')
   }
+
+  useEffect(() => () => clearTimeout(timeoutRef.current), [])
 
   const renderWheel = () => {
     const segmentAngle = 360 / items.length
@@ -95,7 +99,7 @@ function App() {
             
             // 計算文字在輪盤上的位置
             const radius = 120 // 文字距離中心的距離
-            const radian = (textAngle * Math.PI) / 180
+            const radian = ((textAngle - 90) * Math.PI) / 180
             const x = Math.cos(radian) * radius
             const y = Math.sin(radian) * radius
             
@@ -107,7 +111,7 @@ function App() {
                   position: 'absolute',
                   top: `${200 + y}px`,
                   left: `${200 + x}px`,
-                  transform: `translate(-50%, -50%) rotate(${textAngle}deg)`,
+                  transform: `translate(-50%, -50%) rotate(${textAngle - 90}deg)`,
                   transformOrigin: 'center',
                   width: '100px',
                   height: '20px',
@@ -192,7 +196,7 @@ function App() {
                     value={newItem}
                     onChange={(e) => setNewItem(e.target.value)}
                     placeholder="輸入新的獎勵項目..."
-                    onKeyPress={(e) => e.key === 'Enter' && addItem()}
+                    onKeyDown={(e) => e.key === 'Enter' && addItem()}
                     className="flex-1"
                   />
                   <Button 
